@@ -63,4 +63,14 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:$composeVersion")
     debugImplementation("androidx.compose.ui:ui-tooling:$composeVersion")
     debugImplementation("androidx.compose.ui:ui-test-manifest:$composeVersion")
+
+    // declare SciChart libraries as dependencies
+    val scichartVersion = "4.4.0.4739"
+    implementation("com.scichart.library:core:$scichartVersion@aar")
+    implementation("com.scichart.library:data:$scichartVersion@aar")
+    implementation("com.scichart.library:drawing:$scichartVersion@aar")
+    implementation("com.scichart.library:charting3d:$scichartVersion@aar")
+    implementation("com.scichart.library:charting:$scichartVersion@aar")
+    implementation("com.scichart.library:extensions:$scichartVersion@aar")
+    implementation("com.scichart.library:extensions3d:$scichartVersion@aar")
 }
