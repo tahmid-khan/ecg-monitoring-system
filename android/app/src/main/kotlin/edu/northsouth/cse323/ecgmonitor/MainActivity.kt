@@ -1,13 +1,30 @@
 package edu.northsouth.cse323.ecgmonitor
 
+import android.Manifest
+import android.app.Activity
+import android.app.AlertDialog
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.companion.AssociationRequest
+import android.companion.BluetoothDeviceFilter
+import android.companion.CompanionDeviceManager
+import android.content.Intent
+import android.content.IntentSender
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
@@ -24,8 +41,7 @@ import com.scichart.drawing.utility.ColorUtil
 import com.scichart.extensions.builders.SciChartBuilder
 import edu.northsouth.cse323.ecgmonitor.ui.theme.ECGMonitorTheme
 import java.io.IOException
-import java.util.Timer
-import java.util.TimerTask
+import java.util.*
 
 private const val TAG_SCICHART = "TAG_SCICHART"
 private const val TAG_IO = "TAG_IO"
@@ -33,7 +49,12 @@ private const val TAG_EX = "TAG_EX"
 
 private const val CHART_FIFO_CAPACITY = 500
 
+private const val BLUETOOTH_MAC_ADDRESS = "00:19:09:03:08:93"
+private const val BLUETOOTH_SERVICE_UUID = "00001101-0000-1000-8000-00805f9b34fb"
+
 class MainActivity : ComponentActivity() {
+    private lateinit var bluetoothDevice: BluetoothDevice
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -46,7 +67,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    DummyPlot()
+                    MainContent()
                 }
             }
         }
@@ -58,6 +79,15 @@ class MainActivity : ComponentActivity() {
             SciChartSurface.setRuntimeLicenseKey(key)
         } catch (e: Exception) {
             Log.e(TAG_SCICHART, "Error when setting the license", e)
+        }
+    }
+
+    @Composable private fun MainContent() {
+        Column {
+            Button(onClick = { startBluetoothSetup() }) {
+                Text(text = "enable and connect bluetooth")
+            }
+            DummyPlot()
         }
     }
 
@@ -138,5 +168,114 @@ class MainActivity : ComponentActivity() {
 
             surface
         })
+    }
+
+    // Register the permissions callback, which handles the user's response to the system
+    // permissions dialog. Save the return value, an instance of ActivityResultLauncher.  You can
+    // use either a val, as shown in this snippet, or a lateinit var in your onAttach() or
+    // onCreate() method.
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permission is granted. Continue the action or workflow in your
+            // app.
+            startBluetoothSetup()
+        } else {
+            // Explain to the user that the feature is unavailable because the
+            // features requires a permission that the user has denied. At the
+            // same time, respect the user's decision. Don't link to system
+            // settings in an effort to convince the user to change their
+            // decision.
+            requestPermissionBluetoothConnect()
+        }
+    }
+
+    private fun requestPermissionBluetoothConnect() {
+        requestPermissionLauncher.launch(Manifest.permission.BLUETOOTH_CONNECT)
+    }
+
+    private fun startBluetoothSetup() {
+        val bluetoothManager = getSystemService(BluetoothManager::class.java)
+        val bluetoothAdapter = bluetoothManager.adapter!!
+
+        if (bluetoothAdapter.isEnabled) {  // Bluetooth is turned on
+            connectBluetoothDevice()
+        } else {  // Bluetooth is turned off
+            enableBluetoothThenConnectDevice()
+        }
+    }
+
+    // request user to enable Bluetooth, then handle the response
+    private fun enableBluetoothThenConnectDevice() {
+        val intentToEnableBluetooth = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+        enableBluetoothLauncher.launch(intentToEnableBluetooth)
+    }
+
+    private val enableBluetoothLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { activityResult: ActivityResult ->
+        if (activityResult.resultCode == Activity.RESULT_OK) {  // user has turned Bluetooth on
+            connectBluetoothDevice()
+        } else {  // user has rejected the request or an error has occurred
+            // show a message then restart the process
+            AlertDialog.Builder(this)
+                .setMessage("This app requires Bluetooth")
+                .setPositiveButton("ok") { dialog, _ ->
+                    dialog.dismiss()
+                    enableBluetoothThenConnectDevice()
+                }
+                .show()
+        }
+    }
+
+    private fun connectBluetoothDevice() {
+        findBluetoothDevice()
+    }
+
+    private fun findBluetoothDevice() {
+        val deviceFilter = BluetoothDeviceFilter.Builder()
+            .build()
+        val pairingRequest = AssociationRequest.Builder()
+            .addDeviceFilter(deviceFilter)
+            .build()
+
+        val deviceManagerCallback = object : CompanionDeviceManager.Callback() {
+            // Called when a device is found. Launch the IntentSender so the user
+            // can select the device they want to pair with.
+            override fun onDeviceFound(deviceChooserIntentSender: IntentSender) {
+                val deviceChooserIntentSenderRequest = IntentSenderRequest
+                    .Builder(deviceChooserIntentSender).build()
+                chooseDeviceLauncher.launch(deviceChooserIntentSenderRequest)
+            }
+
+            override fun onFailure(error: CharSequence?) {
+                // TODO: Handle the failure.
+            }
+        }
+
+        val deviceManager by lazy { getSystemService(CompanionDeviceManager::class.java) }
+        deviceManager.associate(pairingRequest, deviceManagerCallback, null)
+    }
+
+    private val chooseDeviceLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { activityResult: ActivityResult ->
+        if (activityResult.resultCode == Activity.RESULT_OK) {
+            val intent = activityResult.data
+            val chosenDevice: BluetoothDevice? = intent
+                ?.getParcelableExtra(CompanionDeviceManager.EXTRA_DEVICE)
+            chosenDevice ?: { TODO() }
+            bluetoothDevice = chosenDevice!!
+            bluetoothDevice.createBond()
+        } else {
+            AlertDialog.Builder(this)
+                .setMessage("Please select a device")
+                .setPositiveButton("ok") { dialog, _ ->
+                    dialog.dismiss()
+                    findBluetoothDevice()
+                }
+                .show()
+        }
     }
 }
