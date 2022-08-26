@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ECG Monitor</string>
+    <string name="scichart_license_key">6f4KL3hYuuthMj7DJYmGeofUO3U+VRGfZlZGBzEugzBwbPTqwXe7ohfUKkN5ris6ahH8Mh1lKaX7YS/tZS31tme+Af1a4t/DfTaewr96iDWrVnldBtUneTCbsm5V4GS9/fvW7/SkzeaWkXZZUKEgE8I2V53zdC36vmJ/YAn2IFTrpOybWKPh+eWrTV+Aww5r6XAAI00Hs795a5+lfWM3xfs94D+ALy8i4UC71K8MHebUFTI9MED9vMT1yNO4PXPiVQEg+ckdW7ZlseZgEmmYgY2glPmY7K4y1r4/KCoOSI0y9sn+kP147jfX2ys12zPAGibGE0/2/J8IEMvB+D8YHuf3DukSt6oYlA10qUrLQPX+sKalgB9C14QV1PsgwawYA6dO/udg8gyEJAHK3UeY3Zvbc+fvnKdszAtuyopSzqUOwNTMQXmqP/V5ZntwzTtBvBllW1yCEOKITgbp0OSJ/W4hzVbXJE5G19tpNWJs+SHy/kqSTjt019Ypw0faNIlCX3G3mgtnXjPTTeX6B496vfxXvHe4ZwWn84Q1xKRxDkkcfQz76R8RMTqmXn3euCfxL0MhfK8E03WFGXnuCBst+1ZKE4o=</string>
+    <string name="ecg_data">0,75\n1,66\n2,76\n3,92\n4,88\n5,70\n6,58\n7,73\n8,86\n9,76\n10,62\n11,62\n12,78\n</string>
+</resources>
