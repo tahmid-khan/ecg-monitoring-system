@@ -3,18 +3,14 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
-val compose_version = "1.1.0-beta01"
+val compose_version = "1.1.1"
 
 android {
     compileSdk = 32
 
-    sourceSets.all {
-        kotlin.srcDir("src/$name/kotlin")
-    }
-
     defaultConfig {
         applicationId = "edu.northsouth.cse323.ecgmonitor"
-        minSdk = 26
+        minSdk = 23
         targetSdk = 32
         versionCode = 1
         versionName = "1.0"
@@ -23,6 +19,10 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+    }
+
+    sourceSets.all {
+        kotlin.srcDir("src/$name/kotlin")
     }
 
     buildTypes {
@@ -34,6 +34,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -68,7 +69,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling:$compose_version")
     debugImplementation("androidx.compose.ui:ui-test-manifest:$compose_version")
 
-    // SciChart libraries
+    // SciChart
     val scichart_version = "4.4.0.4739"
     implementation("com.scichart.library:core:$scichart_version@aar")
     implementation("com.scichart.library:data:$scichart_version@aar")
@@ -77,4 +78,8 @@ dependencies {
     implementation("com.scichart.library:charting:$scichart_version@aar")
     implementation("com.scichart.library:extensions:$scichart_version@aar")
     implementation("com.scichart.library:extensions3d:$scichart_version@aar")
+
+    // Navigation component for Jeptack Compose
+    val nav_version = "2.5.1"
+    implementation("androidx.navigation:navigation-compose:$nav_version")
 }
