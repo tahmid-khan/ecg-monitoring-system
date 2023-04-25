@@ -171,8 +171,22 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+//    private val heartRate = mutableStateOf("")
+
     @Composable
     private fun NewPlotScreen() {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+//            Text(heartRate.value)
+            PlotArea()
+        }
+    }
+
+    @Composable
+    private fun PlotArea() {
         AndroidView(factory = { context ->
             SciChartBuilder.init(context)
             val scichartBuilder: SciChartBuilder = SciChartBuilder.instance()
@@ -183,7 +197,7 @@ class MainActivity : ComponentActivity() {
                 .withAxisTitle("voltage")
                 .build()
             val modifiers: ModifierGroup = scichartBuilder.newModifierGroup()
-                .withPinchZoomModifier().withReceiveHandledEvents(true).build()
+//                .withPinchZoomModifier().withReceiveHandledEvents(true).build()
                 .withZoomPanModifier().withReceiveHandledEvents(true).build()
                 .withZoomExtentsModifier().withReceiveHandledEvents(true).build()
                 .withXAxisDragModifier()
@@ -206,7 +220,7 @@ class MainActivity : ComponentActivity() {
                     Int::class.javaObjectType,
                     Double::class.javaObjectType
                 )
-                    .withFifoCapacity(PLOT_FIFO_CAPACITY)
+                    .withFifoCapacity(50)
                     .build()
             val lineSeries: IRenderableSeries = scichartBuilder.newLineSeries()
                 .withDataSeries(lineData)
